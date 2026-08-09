@@ -1,0 +1,1 @@
+export { type Place } from './model/types'

@@ -1,0 +1,1 @@
+export { default as PlaceBoard } from './ui/PlaceBoard'
