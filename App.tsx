@@ -8,12 +8,16 @@
 import { StyleSheet, Text, View } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import MapView from 'react-native-maps';
+import { BottomSheet } from './src/ui/bottom-sheet';
 
 function App() {
   return (
     <SafeAreaProvider>
       <View style={{height: '100%'}}>
         <MapView style={{flex: 1}}/>
+        <BottomSheet>
+          <Text>assa</Text>
+        </BottomSheet>
       </View>
     </SafeAreaProvider>
   );
