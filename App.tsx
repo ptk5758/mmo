@@ -5,13 +5,16 @@
  * @format
  */
 
-import { StyleSheet, Text } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
+import MapView from 'react-native-maps';
 
 function App() {
   return (
     <SafeAreaProvider>
-      <Text>Hello World</Text>
+      <View style={{height: '100%'}}>
+        <MapView style={{flex: 1}}/>
+      </View>
     </SafeAreaProvider>
   );
 }
