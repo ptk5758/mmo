@@ -6,20 +6,26 @@
  */
 
 import { StyleSheet, Text, View } from 'react-native';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import MapView from 'react-native-maps';
-import { BottomSheet } from './src/ui/bottom-sheet';
+import { BottomSheet } from './src/shared/ui/bottom-sheet';
 
 function App() {
   return (
-    <SafeAreaProvider>
-      <View style={{height: '100%'}}>
-        <MapView style={{flex: 1}}/>
-        <BottomSheet>
-          <Text>assa</Text>
-        </BottomSheet>
-      </View>
-    </SafeAreaProvider>
+    <GestureHandlerRootView style={styles.container}>
+      <SafeAreaProvider>
+        <View style={styles.container}>
+          <MapView style={styles.container} />
+          <BottomSheet>
+            <View>
+              <Text>1sss</Text>
+            </View>
+          </BottomSheet>
+          
+        </View>
+      </SafeAreaProvider>
+    </GestureHandlerRootView>
   );
 }
 
