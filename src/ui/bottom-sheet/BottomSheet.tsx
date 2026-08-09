@@ -1,5 +1,4 @@
 import type { ReactNode } from 'react';
-import { useState } from 'react';
 import {
   Pressable,
   ScrollView,
@@ -9,77 +8,136 @@ import {
   type StyleProp,
   type ViewStyle,
 } from 'react-native';
+import { GestureDetector, usePanGesture } from 'react-native-gesture-handler';
+import Animated, {
+  useAnimatedStyle,
+  useSharedValue,
+  withSpring,
+} from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { scheduleOnRN } from 'react-native-worklets';
+
+const VELOCITY_PROJECTION = 0.15;
+const SPRING_CONFIG = {
+  damping: 50,
+  stiffness: 240,
+};
+
+type BottomSheetSnapState = 'expanded' | 'collapsed' | 'closed';
 
 type BottomSheetProps = {
   children: ReactNode;
   title?: string;
   count?: number;
-  expanded?: boolean;
-  defaultExpanded?: boolean;
-  onExpandedChange?: (expanded: boolean) => void;
   collapsedHeight?: number;
   expandedHeight?: number;
+  closedHeight?: number;
+  defaultExpanded?: boolean;
+  onExpandedChange?: (expanded: boolean) => void;
+  onSnapChange?: (state: BottomSheetSnapState) => void;
+  onPressViewAll?: () => void;
   showHeader?: boolean;
   scrollEnabled?: boolean;
   style?: StyleProp<ViewStyle>;
 };
 
 /**
- * 지도 위에 표시하는 고정 높이 BottomSheet.
- *
- * 애니메이션과 드래그 제스처는 의도적으로 포함하지 않았다. `expanded`를
- * 전달하면 controlled component로, 생략하면 `defaultExpanded`를 초기값으로
- * 사용하는 uncontrolled component로 동작한다.
+ * 지도 위에 표시하는 드래그 가능한 BottomSheet UI.
+ * grabber를 위아래로 드래그하면 접힘/펼침 위치에 스냅된다.
  */
 function BottomSheet({
   children,
   title = '내 장소',
   count,
-  expanded,
-  defaultExpanded = false,
-  onExpandedChange,
   collapsedHeight = 302,
   expandedHeight = 598,
+  closedHeight = 48,
+  defaultExpanded = false,
+  onExpandedChange,
+  onSnapChange,
+  onPressViewAll,
   showHeader = true,
   scrollEnabled = true,
   style,
 }: BottomSheetProps) {
   const insets = useSafeAreaInsets();
-  const [internalExpanded, setInternalExpanded] = useState(defaultExpanded);
-  const isExpanded = expanded ?? internalExpanded;
+  const collapsedOffset = Math.max(0, expandedHeight - collapsedHeight);
+  const safeClosedHeight = closedHeight + insets.bottom;
+  const closedOffset = Math.max(
+    collapsedOffset,
+    expandedHeight - safeClosedHeight,
+  );
+  const translateY = useSharedValue(defaultExpanded ? 0 : collapsedOffset);
+  const dragStartY = useSharedValue(translateY.value);
 
-  const toggleExpanded = () => {
-    const nextExpanded = !isExpanded;
-
-    if (expanded === undefined) {
-      setInternalExpanded(nextExpanded);
-    }
-
-    onExpandedChange?.(nextExpanded);
+  const notifySnapChange = (state: BottomSheetSnapState) => {
+    onExpandedChange?.(state === 'expanded');
+    onSnapChange?.(state);
   };
 
+  const panGesture = usePanGesture({
+    activeOffsetY: [-5, 5],
+    onBegin: () => {
+      dragStartY.value = translateY.value;
+    },
+    onUpdate: event => {
+      translateY.value = Math.min(
+        closedOffset,
+        Math.max(0, dragStartY.value + event.translationY),
+      );
+    },
+    onDeactivate: event => {
+      const projectedY = Math.min(
+        closedOffset,
+        Math.max(0, translateY.value + event.velocityY * VELOCITY_PROJECTION),
+      );
+      const expandedDistance = projectedY;
+      const collapsedDistance = Math.abs(projectedY - collapsedOffset);
+      const closedDistance = Math.abs(projectedY - closedOffset);
+
+      let nextState: BottomSheetSnapState = 'expanded';
+      let nextOffset = 0;
+
+      if (
+        collapsedDistance <= expandedDistance &&
+        collapsedDistance <= closedDistance
+      ) {
+        nextState = 'collapsed';
+        nextOffset = collapsedOffset;
+      } else if (closedDistance < expandedDistance) {
+        nextState = 'closed';
+        nextOffset = closedOffset;
+      }
+
+      translateY.value = withSpring(nextOffset, SPRING_CONFIG);
+
+      if (onExpandedChange || onSnapChange) {
+        scheduleOnRN(notifySnapChange, nextState);
+      }
+    },
+  });
+
+  const animatedStyle = useAnimatedStyle(() => ({
+    transform: [{ translateY: translateY.value }],
+  }));
+
   return (
-    <View
+    <Animated.View
       style={[
         styles.sheet,
+        style,
         {
-          height: isExpanded ? expandedHeight : collapsedHeight,
+          height: expandedHeight,
           paddingBottom: Math.max(24, insets.bottom),
         },
-        style,
+        animatedStyle,
       ]}
     >
-      <Pressable
-        accessibilityRole="button"
-        accessibilityLabel={isExpanded ? '바텀 시트 접기' : '바텀 시트 펼치기'}
-        accessibilityState={{ expanded: isExpanded }}
-        hitSlop={12}
-        onPress={toggleExpanded}
-        style={styles.grabberButton}
-      >
-        <View style={styles.grabber} />
-      </Pressable>
+      <GestureDetector gesture={panGesture}>
+        <View style={styles.grabberArea}>
+          <View style={styles.grabber} />
+        </View>
+      </GestureDetector>
 
       {showHeader ? (
         <View style={styles.header}>
@@ -90,15 +148,16 @@ function BottomSheet({
             ) : null}
           </View>
 
-          <Pressable
-            accessibilityRole="button"
-            onPress={toggleExpanded}
-            hitSlop={8}
-          >
-            <Text style={styles.toggleText}>
-              {isExpanded ? '접기' : '전체보기'}
-            </Text>
-          </Pressable>
+          {onPressViewAll ? (
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel="내 장소 전체보기"
+              onPress={onPressViewAll}
+              hitSlop={8}
+            >
+              <Text style={styles.toggleText}>전체보기</Text>
+            </Pressable>
+          ) : null}
         </View>
       ) : null}
 
@@ -111,7 +170,7 @@ function BottomSheet({
       >
         {children}
       </ScrollView>
-    </View>
+    </Animated.View>
   );
 }
 
@@ -133,11 +192,11 @@ const styles = StyleSheet.create({
     shadowRadius: 17,
     elevation: 12,
   },
-  grabberButton: {
-    alignSelf: 'center',
+  grabberArea: {
+    alignSelf: 'stretch',
+    alignItems: 'center',
     justifyContent: 'center',
-    height: 30,
-    paddingHorizontal: 12,
+    height: 48,
   },
   grabber: {
     width: 42,
@@ -176,5 +235,5 @@ const styles = StyleSheet.create({
   },
 });
 
-export type { BottomSheetProps };
+export type { BottomSheetProps, BottomSheetSnapState };
 export default BottomSheet;
