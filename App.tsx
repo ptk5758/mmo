@@ -9,7 +9,7 @@ import { StyleSheet, View } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import MapView from 'react-native-maps';
-import { PlaceBoard } from './src/features/place-board';
+import { PlaceBoard } from './src/features/place';
 
 function App() {
   return (
