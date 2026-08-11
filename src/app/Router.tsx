@@ -8,7 +8,12 @@ export type RootStackParamList = {
 
 const rootStack = createNativeStackNavigator<RootStackParamList>({
   screens: {
-    home: Home,
+    home: {
+        screen: Home,
+        options: {
+            headerShown: false
+        }
+    },
   },
 });
 
