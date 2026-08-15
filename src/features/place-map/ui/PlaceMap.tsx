@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Pressable, StyleSheet, Text, View } from 'react-native'
-import { RotateCcw } from 'lucide-react-native'
+import { MapPinPlus, X } from 'lucide-react-native'
 import MapView, { MapPressEvent, Marker, Region } from 'react-native-maps'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 /**
@@ -23,24 +23,31 @@ interface Place {
     }
 }
 
-function PlaceMap() {
-    const [placeList, setPlaceList] = useState<Place[]>([])
+interface PlaceMapProps {
+    onPressRegister?: (place: Place) => void
+}
+
+function PlaceMap({ onPressRegister }: PlaceMapProps) {
+    const [target, setTarget] = useState<Place | null>(null)
     const insets = useSafeAreaInsets()
 
     const handleMapClick = (e: MapPressEvent) => {
         const { coordinate } = e.nativeEvent
-
-        setPlaceList(prev => [
-            ...prev,
-            {
-                title: `Title ${prev.length + 1}`,
-                description: `description ${prev.length + 1}`,
-                coordinate,
-            },
-        ])
+        setTarget({ title: '선택한 장소', coordinate })
     }
 
-    const handleReset = () => setPlaceList([])
+    const handleCancel = () => setTarget(null)
+
+    const handleRegister = () => {
+        if (!target) return
+
+        onPressRegister?.(target)
+
+        // TODO(장소 등록 화면 구현 후): 아래와 같이 navigation을 연결하세요.
+        // navigation.navigate('장소 등록', { coordinate: target.coordinate })
+    }
+
+    const isTargetSelected = target !== null
 
     return (
         <View style={styles.container}>
@@ -49,38 +56,61 @@ function PlaceMap() {
                 onPress={handleMapClick}
                 initialRegion={DEFAULT_MAP_REGION}
             >
-                {placeList.map((place, index) => {
-                    return (
-                        <Marker
-                            key={index}
-                            title={place.title}
-                            description={place.description}
-                            coordinate={place.coordinate}
-                            stopPropagation={true}
-                        />
-                    )
-                })}
+                {target && (
+                    <Marker
+                        title={target.title}
+                        coordinate={target.coordinate}
+                        stopPropagation={true}
+                    />
+                )}
             </MapView>
 
             <View
                 pointerEvents="box-none"
                 style={[styles.actionLayer, { top: insets.top + 12 }]}
             >
-                <Pressable
-                    accessibilityRole="button"
-                    accessibilityLabel="지도에 추가한 장소 초기화"
-                    disabled={placeList.length === 0}
-                    hitSlop={8}
-                    onPress={handleReset}
-                    style={({ pressed }) => [
-                        styles.action,
-                        placeList.length === 0 && styles.actionDisabled,
-                        pressed && styles.actionPressed,
+                <View
+                    style={[
+                        styles.actionGroup,
+                        !isTargetSelected && styles.actionGroupDisabled,
                     ]}
                 >
-                    <RotateCcw color="#16845B" size={17} strokeWidth={2.2} />
-                    <Text style={styles.actionText}>초기화</Text>
-                </Pressable>
+                    <Pressable
+                        accessibilityRole="button"
+                        accessibilityLabel="선택한 장소 취소"
+                        disabled={!isTargetSelected}
+                        hitSlop={8}
+                        onPress={handleCancel}
+                        style={({ pressed }) => [
+                            styles.cancelAction,
+                            pressed && styles.actionPressed,
+                        ]}
+                    >
+                        <X color="#65736C" size={18} strokeWidth={2.2} />
+                        <Text style={styles.cancelActionText}>취소</Text>
+                    </Pressable>
+
+                    <View style={styles.divider} />
+
+                    <Pressable
+                        accessibilityRole="button"
+                        accessibilityLabel="선택한 장소 등록"
+                        disabled={!isTargetSelected}
+                        hitSlop={8}
+                        onPress={handleRegister}
+                        style={({ pressed }) => [
+                            styles.registerAction,
+                            pressed && styles.actionPressed,
+                        ]}
+                    >
+                        <MapPinPlus
+                            color="#FFFFFF"
+                            size={18}
+                            strokeWidth={2.2}
+                        />
+                        <Text style={styles.registerActionText}>장소 등록</Text>
+                    </Pressable>
+                </View>
             </View>
         </View>
     )
@@ -96,29 +126,52 @@ const styles = StyleSheet.create({
         right: 16,
         zIndex: 2,
         elevation: 5,
-        // backgroundColor: 'red'
     },
-    action: {
+    actionGroup: {
         flexDirection: 'row',
         alignItems: 'center',
-        gap: 6,
-        paddingHorizontal: 14,
-        height: 42,
-        borderRadius: 21,
-        backgroundColor: 'rgba(255, 255, 255, 0.96)',
+        height: 46,
+        overflow: 'hidden',
+        borderRadius: 23,
+        backgroundColor: '#FFFFFF',
         shadowColor: '#243D31',
         shadowOffset: { width: 0, height: 3 },
         shadowOpacity: 0.16,
         shadowRadius: 7,
     },
-    actionDisabled: {
-        opacity: 0.45,
+    actionGroupDisabled: {
+        opacity: 0.38,
     },
     actionPressed: {
         opacity: 0.75,
     },
-    actionText: {
-        color: '#16845B',
+    cancelAction: {
+        height: '100%',
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 5,
+        paddingHorizontal: 14,
+    },
+    cancelActionText: {
+        color: '#65736C',
+        fontSize: 13,
+        fontWeight: '700',
+    },
+    divider: {
+        width: 1,
+        height: 22,
+        backgroundColor: '#E6E9E5',
+    },
+    registerAction: {
+        height: '100%',
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 6,
+        paddingHorizontal: 16,
+        backgroundColor: '#16845B',
+    },
+    registerActionText: {
+        color: '#FFFFFF',
         fontSize: 13,
         fontWeight: '700',
     },
