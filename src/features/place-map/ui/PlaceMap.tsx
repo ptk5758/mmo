@@ -3,6 +3,9 @@ import { Pressable, StyleSheet, Text, View } from 'react-native'
 import { MapPinPlus, X } from 'lucide-react-native'
 import MapView, { MapPressEvent, Marker, Region } from 'react-native-maps'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
+import { NavigationProp, useNavigation } from '@react-navigation/native'
+import { RootStackParamList } from '../../../app'
+import { Coordinate } from '../../../shared/model/types'
 /**
  * 기본 지도 초기화 장소
  * 울산 시청 좌표
@@ -17,10 +20,7 @@ const DEFAULT_MAP_REGION: Region = {
 interface Place {
     title: string
     description?: string
-    coordinate: {
-        latitude: number
-        longitude: number
-    }
+    coordinate: Coordinate
 }
 
 interface PlaceMapProps {
@@ -28,6 +28,7 @@ interface PlaceMapProps {
 }
 
 function PlaceMap({ onPressRegister }: PlaceMapProps) {
+    const navigation = useNavigation<NavigationProp<RootStackParamList>>()
     const [target, setTarget] = useState<Place | null>(null)
     const [placeList, setPlaceList] = useState<Place[]>([])
     const insets = useSafeAreaInsets()
@@ -43,9 +44,8 @@ function PlaceMap({ onPressRegister }: PlaceMapProps) {
         if (!target) return
 
         onPressRegister?.(target)
-
-        // TODO(장소 등록 화면 구현 후): 아래와 같이 navigation을 연결하세요.
-        // navigation.navigate('장소 등록', { coordinate: target.coordinate })
+        
+        navigation.navigate('placeForm', { coordinate: target.coordinate })
     }
 
     const isTargetSelected = target !== null
