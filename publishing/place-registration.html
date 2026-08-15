@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>자리알림 — 장소 등록</title>
+  <style>
+    :root {
+      --ink:#18211d; --muted:#718079; --green:#16845b; --green-dark:#0f6947;
+      --green-soft:#e8f4ed; --cream:#f6f5ef; --white:#fff; --line:#e3e8e3;
+      --danger:#c84f46; --shadow:0 22px 70px rgba(25,43,35,.2);
+    }
+    * { box-sizing:border-box }
+    html,body { margin:0; min-height:100%; font-family:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Pretendard",sans-serif; color:var(--ink); background:#dfe6e1 }
+    button,input,textarea { font:inherit }
+    button { color:inherit }
+    .stage { min-height:100vh; display:grid; place-items:center; padding:24px }
+    .phone { position:relative; width:min(402px,100vw); height:min(874px,100vh); overflow:hidden; background:var(--cream); box-shadow:var(--shadow) }
+    .screen { height:100%; overflow-y:auto; scrollbar-width:none; padding-bottom:calc(110px + env(safe-area-inset-bottom)) }
+    .screen::-webkit-scrollbar { display:none }
+    .hero { position:relative; height:258px; overflow:hidden; background:#e8ede6 }
+    .map { position:absolute; inset:0; overflow:hidden; background:#e7ebe4 }
+    .map:before { content:""; position:absolute; inset:-25%; background:linear-gradient(25deg,transparent 44%,rgba(255,255,255,.92) 45% 49%,transparent 50%),linear-gradient(105deg,transparent 47%,rgba(255,255,255,.9) 48% 52%,transparent 53%),linear-gradient(155deg,transparent 53%,rgba(255,255,255,.78) 54% 58%,transparent 59%) }
+    .park { position:absolute; width:145px; height:112px; left:-35px; bottom:23px; border-radius:48%; background:#cee4c8; transform:rotate(-14deg) }
+    .water { position:absolute; width:130px; height:290px; right:-84px; top:-22px; border-radius:48%; background:#c8e4e1; transform:rotate(11deg) }
+    .road { position:absolute; width:470px; height:10px; top:128px; left:-38px; transform:rotate(-22deg); background:#fff; box-shadow:0 0 0 1px #dce2db }
+    .map-label { position:absolute; color:#87938c; font-size:10px; font-weight:650 }
+    .map-label.one { top:72px; left:78px }.map-label.two { right:48px; bottom:35px }
+    .radius { position:absolute; z-index:2; top:75px; left:50%; width:112px; height:112px; transform:translateX(-50%); border:2px solid rgba(22,132,91,.4); border-radius:50%; background:rgba(53,172,123,.12); transition:.2s }
+    .pin { position:absolute; z-index:3; top:103px; left:50%; width:43px; height:43px; display:grid; place-items:center; transform:translateX(-50%) rotate(-45deg); border:4px solid #fff; border-radius:50% 50% 50% 10%; background:var(--green); color:#fff; filter:drop-shadow(0 6px 7px rgba(23,56,40,.22)) }
+    .pin svg { width:19px; transform:rotate(45deg) }
+    .header { position:absolute; z-index:5; top:0; left:0; right:0; display:flex; align-items:center; justify-content:space-between; padding:max(16px,env(safe-area-inset-top)) 17px 0 }
+    .back { width:42px; height:42px; display:grid; place-items:center; border:0; border-radius:14px; background:rgba(255,255,255,.94); box-shadow:0 5px 18px rgba(31,53,43,.11); cursor:pointer }
+    .back svg { width:21px }
+    .header-title { margin:0; padding:10px 14px; border-radius:14px; background:rgba(255,255,255,.94); box-shadow:0 5px 18px rgba(31,53,43,.09); font-size:16px; letter-spacing:-.45px }
+    .header-space { width:42px }
+    .coordinate { position:absolute; z-index:4; left:18px; right:18px; bottom:14px; display:flex; gap:10px; align-items:center; padding:12px 14px; border:1px solid rgba(255,255,255,.7); border-radius:16px; background:rgba(255,255,255,.94); box-shadow:0 7px 22px rgba(31,53,43,.12); backdrop-filter:blur(12px) }
+    .coordinate-icon { flex:0 0 35px; width:35px; height:35px; display:grid; place-items:center; border-radius:11px; color:var(--green); background:var(--green-soft) }
+    .coordinate-icon svg { width:18px }.coordinate small { display:block; margin-bottom:3px; color:var(--muted); font-size:10px; font-weight:700 }.coordinate strong { display:block; font-size:12px; letter-spacing:.1px }
+    .form { padding:25px 20px 12px }
+    .intro { margin-bottom:25px }.intro h1 { margin:0 0 7px; font-size:24px; letter-spacing:-1px }.intro p { margin:0; color:var(--muted); font-size:13px; line-height:1.5 }
+    .section { margin-top:29px }.section-title { display:flex; align-items:center; gap:8px; margin:0 0 15px; font-size:15px; letter-spacing:-.35px }.number { width:23px; height:23px; display:grid; place-items:center; border-radius:8px; color:var(--green); background:var(--green-soft); font-size:11px }
+    .field { margin-bottom:17px }.field-head { display:flex; justify-content:space-between; align-items:center; margin-bottom:7px }.field label { font-size:12px; font-weight:750 }.optional,.count { color:#98a29c; font-size:10px; font-weight:600 }
+    .control { width:100%; min-height:48px; padding:13px 14px; border:1px solid var(--line); border-radius:14px; outline:none; color:var(--ink); background:var(--white); transition:.18s }
+    textarea.control { min-height:80px; resize:none; line-height:1.45 }.control::placeholder { color:#a5ada8 }.control:focus { border-color:var(--green); box-shadow:0 0 0 3px rgba(22,132,91,.09) }.control.invalid { border-color:var(--danger) }
+    .error { display:none; margin:6px 2px 0; color:var(--danger); font-size:11px }.error.on { display:block }
+    .radius-card { padding:16px; border:1px solid var(--line); border-radius:18px; background:#fff }
+    .radius-top { display:flex; align-items:center; justify-content:space-between; margin-bottom:13px }.radius-top b { font-size:13px }.radius-value { color:var(--green); font-size:18px; font-weight:800 }.radius-value small { font-size:11px }
+    input[type="range"] { width:100%; height:5px; appearance:none; border-radius:8px; outline:none; background:linear-gradient(to right,var(--green) 0 25%,#dfe5e0 25% 100%) }
+    input[type="range"]::-webkit-slider-thumb { width:23px; height:23px; appearance:none; border:4px solid #fff; border-radius:50%; background:var(--green); box-shadow:0 2px 8px rgba(22,92,65,.28); cursor:pointer }
+    .range-labels { display:flex; justify-content:space-between; margin-top:10px; color:#9aa39e; font-size:10px }
+    .option-list { overflow:hidden; border:1px solid var(--line); border-radius:18px; background:#fff }.option { display:flex; align-items:center; justify-content:space-between; gap:14px; padding:16px }.option+ .option { border-top:1px solid var(--line) }.option b { display:block; margin-bottom:4px; font-size:13px }.option p { margin:0; color:var(--muted); font-size:11px; line-height:1.4 }
+    .switch { position:relative; flex:0 0 48px; width:48px; height:29px; padding:0; border:0; border-radius:18px; background:var(--green); cursor:pointer; transition:.2s }.switch:after { content:""; position:absolute; top:3px; right:3px; width:23px; height:23px; border-radius:50%; background:#fff; box-shadow:0 2px 5px rgba(0,0,0,.15); transition:.2s }.switch.off { background:#cdd2ce }.switch.off:after { right:22px }
+    .permission { display:flex; gap:11px; margin-top:17px; padding:14px; border-radius:16px; color:#586760; background:#edf2ee; font-size:11px; line-height:1.5 }.permission svg { flex:0 0 18px; width:18px; color:var(--green) }.permission b { color:var(--ink) }
+    .bottom { position:absolute; z-index:10; left:0; right:0; bottom:0; padding:12px 20px calc(14px + env(safe-area-inset-bottom)); border-top:1px solid rgba(227,232,227,.9); background:rgba(255,255,255,.96); backdrop-filter:blur(16px) }
+    .save { width:100%; height:52px; border:0; border-radius:16px; color:#fff; background:var(--green); font-size:15px; font-weight:800; box-shadow:0 8px 18px rgba(22,132,91,.22); cursor:pointer }.save:active { background:var(--green-dark); transform:translateY(1px) }
+    .toast { position:absolute; z-index:30; left:50%; bottom:91px; max-width:calc(100% - 40px); padding:13px 17px; border-radius:14px; opacity:0; color:#fff; background:#17231d; font-size:12px; text-align:center; white-space:nowrap; pointer-events:none; transform:translate(-50%,15px); transition:.25s }.toast.on { opacity:1; transform:translate(-50%,0) }
+    @media (max-width:440px) { .stage { padding:0 }.phone { width:100vw; height:100dvh } }
+  </style>
+</head>
+<body>
+<main class="stage">
+  <section class="phone" aria-label="장소 등록 화면 프로토타입">
+    <div class="screen">
+      <section class="hero" aria-label="선택한 위치 미리보기">
+        <div class="map"><div class="park"></div><div class="water"></div><div class="road"></div><span class="map-label one">성수동 카페거리</span><span class="map-label two">서울숲</span></div>
+        <header class="header">
+          <button class="back" type="button" aria-label="뒤로 가기" id="back"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="m15 18-6-6 6-6"/></svg></button>
+          <h1 class="header-title">장소 등록</h1><div class="header-space"></div>
+        </header>
+        <div class="radius" id="mapRadius"></div>
+        <div class="pin"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M20 10c0 5-8 11-8 11S4 15 4 10a8 8 0 1 1 16 0Z"/><circle cx="12" cy="10" r="2.5"/></svg></div>
+        <div class="coordinate"><div class="coordinate-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><circle cx="12" cy="12" r="8"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2"/></svg></div><div><small>선택한 좌표</small><strong>37.544564 · 127.043419</strong></div></div>
+      </section>
+
+      <form class="form" id="placeForm" novalidate>
+        <div class="intro"><h1>어떤 장소인가요?</h1><p>이름과 알림 조건을 설정하면 장소 근처에서 알려드려요.</p></div>
+
+        <section class="section" aria-labelledby="basicTitle">
+          <h2 class="section-title" id="basicTitle"><span class="number">1</span>장소 정보</h2>
+          <div class="field"><div class="field-head"><label for="name">장소 이름</label><span class="count"><span id="nameCount">0</span>/20</span></div><input class="control" id="name" name="name" maxlength="20" placeholder="예: 우리 집, 회사" required><p class="error" id="nameError">장소 이름을 입력해 주세요.</p></div>
+          <div class="field"><div class="field-head"><label for="description">설명</label><span class="optional">선택</span></div><input class="control" id="description" name="description" placeholder="장소를 기억할 수 있는 설명"></div>
+        </section>
+
+        <section class="section" aria-labelledby="rangeTitle">
+          <h2 class="section-title" id="rangeTitle"><span class="number">2</span>알림 반경</h2>
+          <div class="radius-card"><div class="radius-top"><b>장소로부터</b><span class="radius-value"><span id="radiusValue">150</span><small> m</small></span></div><input id="radiusRange" name="radius" type="range" min="50" max="500" step="50" value="150" aria-label="알림 반경"><div class="range-labels"><span>50m</span><span>가까이</span><span>500m</span></div></div>
+        </section>
+
+        <section class="section" aria-labelledby="notificationTitle">
+          <h2 class="section-title" id="notificationTitle"><span class="number">3</span>알림 메시지</h2>
+          <div class="field"><div class="field-head"><label for="notificationName">알림 제목</label><span class="count"><span id="titleCount">10</span>/30</span></div><input class="control" id="notificationName" name="notificationName" maxlength="30" value="근처에 도착했어요" required><p class="error" id="titleError">알림 제목을 입력해 주세요.</p></div>
+          <div class="field"><div class="field-head"><label for="notificationBody">알림 내용</label><span class="count"><span id="bodyCount">19</span>/80</span></div><textarea class="control" id="notificationBody" name="notificationBody" maxlength="80" required>설정한 장소 반경 안에 들어왔어요.</textarea><p class="error" id="bodyError">알림 내용을 입력해 주세요.</p></div>
+        </section>
+
+        <section class="section" aria-labelledby="optionTitle">
+          <h2 class="section-title" id="optionTitle"><span class="number">4</span>추적 설정</h2>
+          <div class="option-list">
+            <div class="option"><div><b>알림 활성화</b><p>백그라운드에서 위치를 확인해요</p></div><button class="switch" type="button" role="switch" aria-checked="true" aria-label="알림 활성화"></button></div>
+            <div class="option"><div><b>첫 방문 후 자동 완료</b><p>한 번 알린 후 이 장소의 추적을 종료해요</p></div><button class="switch off" type="button" role="switch" aria-checked="false" aria-label="첫 방문 후 자동 완료"></button></div>
+          </div>
+          <div class="permission"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/></svg><div><b>위치 권한이 없어도 저장할 수 있어요.</b><br>다만 권한을 허용하기 전까지 백그라운드 추적과 알림은 시작되지 않습니다.</div></div>
+        </section>
+      </form>
+    </div>
+    <div class="bottom"><button class="save" type="submit" form="placeForm">장소 저장하기</button></div>
+    <div class="toast" id="toast" role="status"></div>
+  </section>
+</main>
+<script>
+  const form=document.querySelector('#placeForm');
+  const toastEl=document.querySelector('#toast');
+  let toastTimer;
+  function toast(message){toastEl.textContent=message;toastEl.classList.add('on');clearTimeout(toastTimer);toastTimer=setTimeout(()=>toastEl.classList.remove('on'),1800)}
+  document.querySelector('#back').addEventListener('click',()=>toast('이전 화면으로 이동합니다'));
+  document.querySelectorAll('.switch').forEach(button=>button.addEventListener('click',()=>{const checked=button.getAttribute('aria-checked')==='true';button.setAttribute('aria-checked',String(!checked));button.classList.toggle('off',checked)}));
+  const radius=document.querySelector('#radiusRange');
+  radius.addEventListener('input',()=>{const progress=(radius.value-radius.min)/(radius.max-radius.min)*100;document.querySelector('#radiusValue').textContent=radius.value;radius.style.background=`linear-gradient(to right,var(--green) 0 ${progress}%,#dfe5e0 ${progress}% 100%)`;document.querySelector('#mapRadius').style.transform=`translateX(-50%) scale(${.75+progress/200})`});
+  [['name','nameCount'],['notificationName','titleCount'],['notificationBody','bodyCount']].forEach(([fieldId,countId])=>{const field=document.querySelector(`#${fieldId}`);const count=document.querySelector(`#${countId}`);count.textContent=field.value.length;field.addEventListener('input',()=>count.textContent=field.value.length)});
+  form.addEventListener('submit',event=>{event.preventDefault();let valid=true;[['name','nameError'],['notificationName','titleError'],['notificationBody','bodyError']].forEach(([fieldId,errorId])=>{const field=document.querySelector(`#${fieldId}`);const invalid=!field.value.trim();field.classList.toggle('invalid',invalid);document.querySelector(`#${errorId}`).classList.toggle('on',invalid);if(invalid)valid=false});if(!valid){document.querySelector('.invalid')?.focus();toast('필수 항목을 확인해 주세요');return}toast('새 장소를 저장했어요')});
+</script>
+</body>
+</html>
