@@ -2,6 +2,7 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack'
 import { createStaticNavigation } from '@react-navigation/native'
 import { Home } from '../pages/home'
 import { Coordinate } from '../shared/model/types'
+import { PlaceForm } from '../pages/place-form'
 
 export type RootStackParamList = {
     home: undefined
@@ -17,7 +18,7 @@ const rootStack = createNativeStackNavigator<RootStackParamList>({
             },
         },
         placeForm: {
-            screen: () => <></>,
+            screen: PlaceForm,
             options: {
                 title: '장소 등록 & 수정',
             },
