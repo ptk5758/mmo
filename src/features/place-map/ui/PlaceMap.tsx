@@ -29,6 +29,7 @@ interface PlaceMapProps {
 
 function PlaceMap({ onPressRegister }: PlaceMapProps) {
     const [target, setTarget] = useState<Place | null>(null)
+    const [placeList, setPlaceList] = useState<Place[]>([])
     const insets = useSafeAreaInsets()
 
     const handleMapClick = (e: MapPressEvent) => {
@@ -56,6 +57,17 @@ function PlaceMap({ onPressRegister }: PlaceMapProps) {
                 onPress={handleMapClick}
                 initialRegion={DEFAULT_MAP_REGION}
             >
+                {placeList.map((place, index) => {
+                    return (
+                        <Marker
+                            key={index}
+                            title={place.title}
+                            description={place.description}
+                            coordinate={place.coordinate}
+                            stopPropagation={true}
+                        />
+                    )
+                })}
                 {target && (
                     <Marker
                         title={target.title}
