@@ -56,6 +56,7 @@ function PlaceMap() {
                             title={place.title}
                             description={place.description}
                             coordinate={place.coordinate}
+                            stopPropagation={true}
                         />
                     )
                 })}
