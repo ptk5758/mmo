@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { StyleSheet, View } from 'react-native'
 import MapView, { MapPressEvent, Marker, Region } from 'react-native-maps'
 /**
@@ -11,10 +12,31 @@ const DEFAULT_MAP_REGION: Region = {
     longitudeDelta: 0.01, // zoom 관련
 }
 
+interface Place {
+    title: string
+    description?: string
+    coordinate: {
+        latitude: number
+        longitude: number
+    }
+}
+
 function PlaceMap() {
+    const [placeList, setPlaceList] = useState<Place[]>([])
+
     const handleMapClick = (e: MapPressEvent) => {
         const { coordinate } = e.nativeEvent
+
+        setPlaceList(prev => [
+            ...prev,
+            {
+                title: `Title ${placeList.length + 1}`,
+                description: `description ${placeList.length + 1}`,
+                coordinate,
+            },
+        ])
     }
+
     return (
         <View style={styles.container}>
             <MapView
@@ -22,14 +44,16 @@ function PlaceMap() {
                 onPress={handleMapClick}
                 initialRegion={DEFAULT_MAP_REGION}
             >
-                <Marker
-                    title='울산_시청'
-                    description='울산_시청_설명'
-                    coordinate={{
-                        latitude: 35.5389435,
-                        longitude: 129.3119449,
-                    }}
-                />
+                {placeList.map((place, index) => {
+                    return (
+                        <Marker
+                            key={index}
+                            title={place.title}
+                            description={place.description}
+                            coordinate={place.coordinate}
+                        />
+                    )
+                })}
             </MapView>
         </View>
     )
