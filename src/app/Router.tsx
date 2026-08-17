@@ -6,7 +6,7 @@ import { PlaceForm } from '../pages/place-form'
 
 export type RootStackParamList = {
     home: undefined
-    placeForm: { coordinate: Coordinate }
+    placeForm: { coordinate: Coordinate, placeId?: string }, 
 }
 
 const rootStack = createNativeStackNavigator<RootStackParamList>({
