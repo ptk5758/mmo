@@ -8,14 +8,40 @@ import { PlaceGeoFenceSection, PlaceInputSection, PlaceNotificationSection, Plac
 type PlaceFormProps = NativeStackScreenProps<RootStackParamList, 'placeForm'>
 
 function PlaceForm({ route }: PlaceFormProps) {
-    const { coordinate } = route.params
-    const [name, setName] = useState('')
-    const [description, setDescription] = useState('')
-    const [radiusMeters, setRadiusMeters] = useState(150)
-    const [notificationTitle, setNotificationTitle] = useState('근처에 도착했어요')
-    const [notificationMessage, setNotificationMessage] = useState('설정한 장소 반경 안에 들어왔어요.')
-    const [isEnabled, setIsEnabled] = useState(true)
-    const [autoMarkVisited, setAutoMarkVisited] = useState(false)
+    const { coordinate, placeId } = route.params
+    /**
+     * 수정 모드 인지 flag
+     */
+    const isModify = Boolean(placeId)
+    const actionText = isModify ? '수정' : '등록'
+    const [name, setName] = useState<string>('')
+    const [description, setDescription] = useState<string>('')
+    const [radiusMeters, setRadiusMeters] = useState<number>(150)
+    const [notificationTitle, setNotificationTitle] = useState<string>('근처에 도착했어요')
+    const [notificationMessage, setNotificationMessage] = useState<string>('설정한 장소 반경 안에 들어왔어요.')
+    const [isEnabled, setIsEnabled] = useState<boolean>(true)
+    const [autoMarkVisited, setAutoMarkVisited] = useState<boolean>(false)
+
+    const handleButtonClick = () => {
+        const data = {
+            name,
+            description,
+            radiusMeters,
+            notificationTitle,
+            notificationMessage,
+            isEnabled,
+            autoMarkVisited,
+        }
+        // console.log(data)
+        const action = isModify ? update(placeId!, data) : save(data)
+    }
+
+    const save = (data: any) => {
+        console.log('Save')
+    }
+    const update = (placeId: string, data: any) => {
+        console.log('Update')
+    }
 
     return (
         <ScrollView style={styles.page} contentContainerStyle={styles.pageContent} keyboardShouldPersistTaps="handled">
@@ -54,8 +80,9 @@ function PlaceForm({ route }: PlaceFormProps) {
                     <Pressable
                         accessibilityRole="button"
                         style={({ pressed }) => [styles.submitButton, pressed && styles.submitButtonActive]}
+                        onPress={handleButtonClick}
                     >
-                        <Text style={styles.submitButtonText}>장소 등록 & 수정</Text>
+                        <Text style={styles.submitButtonText}>장소 {actionText}</Text>
                     </Pressable>
                 </View>
             </View>

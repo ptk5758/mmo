@@ -6,7 +6,7 @@ import { PlaceForm } from '../pages/place-form'
 
 export type RootStackParamList = {
     home: undefined
-    placeForm: { coordinate: Coordinate, placeId?: string }, 
+    placeForm: { coordinate: Coordinate; placeId?: string }
 }
 
 const rootStack = createNativeStackNavigator<RootStackParamList>({
@@ -19,9 +19,9 @@ const rootStack = createNativeStackNavigator<RootStackParamList>({
         },
         placeForm: {
             screen: PlaceForm,
-            options: {
-                title: '장소 등록 & 수정',
-            },
+            options: ({ route }) => ({
+                title: route.params.placeId ? '장소 수정' : '장소 등록',
+            }),
         },
     },
 })
