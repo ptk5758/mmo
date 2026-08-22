@@ -1,8 +1,9 @@
 import { NativeStackScreenProps } from '@react-navigation/native-stack'
 import { useState } from 'react'
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native'
+import { Alert, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native'
 import MapView, { Marker } from 'react-native-maps'
 import { RootStackParamList } from '../../../app'
+import { createPlace } from '../../../features/place'
 import { PlaceGeoFenceSection, PlaceInputSection, PlaceNotificationSection, PlaceTrackingSection } from './sections'
 
 type PlaceFormProps = NativeStackScreenProps<RootStackParamList, 'placeForm'>
@@ -33,13 +34,33 @@ function PlaceForm({ route }: PlaceFormProps) {
             autoMarkVisited,
         }
         // console.log(data)
-        const action = isModify ? update(placeId!, data) : save(data)
+        isModify ? update(placeId!, data) : save(data)
     }
 
-    const save = (data: any) => {
-        console.log('Save')
+    const save = (data: {
+        name: string
+        description: string
+        radiusMeters: number
+        notificationTitle: string
+        notificationMessage: string
+        isEnabled: boolean
+        autoMarkVisited: boolean
+    }) => {
+        const place = createPlace({
+            name: data.name,
+            description: data.description,
+            coordinate,
+            radiusMeters: data.radiusMeters,
+            notification: {
+                notificationTitle: data.notificationTitle,
+                notificationMessage: data.notificationMessage,
+            },
+            isEnabled: data.isEnabled,
+            autoMarkVisitedOnFirstEntry: data.autoMarkVisited,
+        })
+        Alert.alert('장소 등록 완료', place.id)
     }
-    const update = (placeId: string, data: any) => {
+    const update = (_placeId: string, _data: any) => {
         console.log('Update')
     }
 
