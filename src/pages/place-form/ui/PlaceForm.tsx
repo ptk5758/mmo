@@ -51,7 +51,10 @@ function PlaceForm({ route }: PlaceFormProps) {
                     onChangeAutoMarkVisited={setAutoMarkVisited}
                 />
                 <View style={styles.action}>
-                    <Pressable style={styles.submitButton}>
+                    <Pressable
+                        accessibilityRole="button"
+                        style={({ pressed }) => [styles.submitButton, pressed && styles.submitButtonActive]}
+                    >
                         <Text style={styles.submitButtonText}>장소 등록 & 수정</Text>
                     </Pressable>
                 </View>
@@ -73,6 +76,10 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         borderRadius: 16,
         backgroundColor: '#16845B',
+    },
+    submitButtonActive: {
+        backgroundColor: '#0F6947',
+        transform: [{ translateY: 1 }],
     },
     submitButtonText: { color: '#FFFFFF', fontSize: 15, fontWeight: '800' },
 })
