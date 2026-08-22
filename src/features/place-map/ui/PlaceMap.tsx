@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Pressable, StyleSheet, Text, View } from 'react-native'
-import { MapPinPlus, X } from 'lucide-react-native'
+import { MapPinPlus, X } from 'lucide-react-native/icons'
 import MapView, { MapPressEvent, Marker, Region } from 'react-native-maps'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { NavigationProp, useNavigation } from '@react-navigation/native'
@@ -44,7 +44,7 @@ function PlaceMap({ onPressRegister }: PlaceMapProps) {
         if (!target) return
 
         onPressRegister?.(target)
-        
+
         navigation.navigate('placeForm', { coordinate: target.coordinate })
     }
 
@@ -52,11 +52,7 @@ function PlaceMap({ onPressRegister }: PlaceMapProps) {
 
     return (
         <View style={styles.container}>
-            <MapView
-                style={styles.map}
-                onPress={handleMapClick}
-                initialRegion={DEFAULT_MAP_REGION}
-            >
+            <MapView style={styles.map} onPress={handleMapClick} initialRegion={DEFAULT_MAP_REGION}>
                 {placeList.map((place, index) => {
                     return (
                         <Marker
@@ -68,35 +64,18 @@ function PlaceMap({ onPressRegister }: PlaceMapProps) {
                         />
                     )
                 })}
-                {target && (
-                    <Marker
-                        title={target.title}
-                        coordinate={target.coordinate}
-                        stopPropagation={true}
-                    />
-                )}
+                {target && <Marker title={target.title} coordinate={target.coordinate} stopPropagation={true} />}
             </MapView>
 
-            <View
-                pointerEvents="box-none"
-                style={[styles.actionLayer, { top: insets.top + 12 }]}
-            >
-                <View
-                    style={[
-                        styles.actionGroup,
-                        !isTargetSelected && styles.actionGroupDisabled,
-                    ]}
-                >
+            <View pointerEvents="box-none" style={[styles.actionLayer, { top: insets.top + 12 }]}>
+                <View style={[styles.actionGroup, !isTargetSelected && styles.actionGroupDisabled]}>
                     <Pressable
                         accessibilityRole="button"
                         accessibilityLabel="선택한 장소 취소"
                         disabled={!isTargetSelected}
                         hitSlop={8}
                         onPress={handleCancel}
-                        style={({ pressed }) => [
-                            styles.cancelAction,
-                            pressed && styles.actionPressed,
-                        ]}
+                        style={({ pressed }) => [styles.cancelAction, pressed && styles.actionPressed]}
                     >
                         <X color="#65736C" size={18} strokeWidth={2.2} />
                         <Text style={styles.cancelActionText}>취소</Text>
@@ -110,16 +89,9 @@ function PlaceMap({ onPressRegister }: PlaceMapProps) {
                         disabled={!isTargetSelected}
                         hitSlop={8}
                         onPress={handleRegister}
-                        style={({ pressed }) => [
-                            styles.registerAction,
-                            pressed && styles.actionPressed,
-                        ]}
+                        style={({ pressed }) => [styles.registerAction, pressed && styles.actionPressed]}
                     >
-                        <MapPinPlus
-                            color="#FFFFFF"
-                            size={18}
-                            strokeWidth={2.2}
-                        />
+                        <MapPinPlus color="#FFFFFF" size={18} strokeWidth={2.2} />
                         <Text style={styles.registerActionText}>장소 등록</Text>
                     </Pressable>
                 </View>
