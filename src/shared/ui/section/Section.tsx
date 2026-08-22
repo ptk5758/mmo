@@ -33,7 +33,6 @@ function Section({
 const styles = StyleSheet.create({
     section: {
         width: '100%',
-        marginTop: 29,
     },
     top: {
         flexDirection: 'row',
