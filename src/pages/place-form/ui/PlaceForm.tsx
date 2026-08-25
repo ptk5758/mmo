@@ -3,7 +3,7 @@ import { useState } from 'react'
 import { Alert, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native'
 import MapView, { Marker } from 'react-native-maps'
 import { RootStackParamList } from '../../../app'
-import { createPlace } from '../../../features/place'
+import { createPlace, getPlaceList, savePlaceList } from '../../../features/place'
 import { PlaceGeoFenceSection, PlaceInputSection, PlaceNotificationSection, PlaceTrackingSection } from './sections'
 
 type PlaceFormProps = NativeStackScreenProps<RootStackParamList, 'placeForm'>
@@ -37,7 +37,7 @@ function PlaceForm({ route }: PlaceFormProps) {
         isModify ? update(placeId!, data) : save(data)
     }
 
-    const save = (data: {
+    const save = async (data: {
         name: string
         description: string
         radiusMeters: number
@@ -58,6 +58,11 @@ function PlaceForm({ route }: PlaceFormProps) {
             isEnabled: data.isEnabled,
             autoMarkVisitedOnFirstEntry: data.autoMarkVisited,
         })
+
+        const list = await getPlaceList()
+        console.log(list)
+        await savePlaceList([...list, place])
+
         Alert.alert('장소 등록 완료', place.id)
     }
     const update = (_placeId: string, _data: any) => {
