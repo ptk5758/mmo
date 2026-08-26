@@ -1,9 +1,9 @@
+import { useFocusEffect } from '@react-navigation/native'
+import { useCallback, useState } from 'react'
 import { StyleSheet, Text, View } from 'react-native'
 import { BottomSheet } from '../../../shared/ui/bottom-sheet'
-import { mockPlaces } from '../mock/data'
 import type { Place } from '../model/types'
 import PlaceBoardItem from './PlaceBoardItem'
-import { useEffect, useState } from 'react'
 import { getPlaceList } from '../model/place'
 
 type PlaceBoardProps = {
@@ -13,11 +13,14 @@ type PlaceBoardProps = {
 
 function PlaceBoard({ onPressPlace, onPressViewAll }: PlaceBoardProps) {
     const [placeList, setPlaceList] = useState<Place[]>([])
-    useEffect(() => {
-        getPlaceList().then(list => {
-            setPlaceList(list)
-        })
-    }, [])
+
+    useFocusEffect(
+        // 렌더링 이슈로 useCallback 으로 줘야 한다함
+        useCallback(() => {
+            getPlaceList().then(setPlaceList)
+        }, []),
+    )
+
     return (
         <BottomSheet title="내 장소" count={placeList.length} onPressViewAll={onPressViewAll}>
             {placeList.length > 0 ? (

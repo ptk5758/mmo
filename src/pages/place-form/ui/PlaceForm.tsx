@@ -3,13 +3,16 @@ import { useState } from 'react'
 import { Alert, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native'
 import MapView, { Marker } from 'react-native-maps'
 import { RootStackParamList } from '../../../app'
-import { addPlace, createPlace, getPlaceList, savePlaceList } from '../../../features/place'
+import { addPlace, createPlace } from '../../../features/place'
 import { PlaceGeoFenceSection, PlaceInputSection, PlaceNotificationSection, PlaceTrackingSection } from './sections'
+import { useNavigation } from '@react-navigation/native'
 
 type PlaceFormProps = NativeStackScreenProps<RootStackParamList, 'placeForm'>
 
 function PlaceForm({ route }: PlaceFormProps) {
     const { coordinate, placeId } = route.params
+
+    const navigation = useNavigation()
     /**
      * 수정 모드 인지 flag
      */
@@ -61,7 +64,12 @@ function PlaceForm({ route }: PlaceFormProps) {
 
         await addPlace(place)
 
-        Alert.alert('장소 등록 완료', place.id)
+        Alert.alert('장소 등록 완료', place.id, [
+            {
+                text: '확인',
+                onPress: () => navigation.goBack(),
+            },
+        ])
     }
     const update = (_placeId: string, _data: any) => {
         console.log('Update')
