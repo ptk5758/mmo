@@ -55,3 +55,8 @@ export async function getPlaceList(): Promise<Place[]> {
 export async function savePlaceList(placeList: Place[]): Promise<void> {
     await storage.setItem(SCHEMA_NAME, JSON.stringify(placeList))
 }
+
+export async function addPlace(place: Place): Promise<void> {
+    const list = await getPlaceList()
+    await savePlaceList([...list, place])
+}

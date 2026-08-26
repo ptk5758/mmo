@@ -3,7 +3,7 @@ import { useState } from 'react'
 import { Alert, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native'
 import MapView, { Marker } from 'react-native-maps'
 import { RootStackParamList } from '../../../app'
-import { createPlace, getPlaceList, savePlaceList } from '../../../features/place'
+import { addPlace, createPlace, getPlaceList, savePlaceList } from '../../../features/place'
 import { PlaceGeoFenceSection, PlaceInputSection, PlaceNotificationSection, PlaceTrackingSection } from './sections'
 
 type PlaceFormProps = NativeStackScreenProps<RootStackParamList, 'placeForm'>
@@ -59,9 +59,7 @@ function PlaceForm({ route }: PlaceFormProps) {
             autoMarkVisitedOnFirstEntry: data.autoMarkVisited,
         })
 
-        const list = await getPlaceList()
-        console.log(list)
-        await savePlaceList([...list, place])
+        await addPlace(place)
 
         Alert.alert('장소 등록 완료', place.id)
     }
