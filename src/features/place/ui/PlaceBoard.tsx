@@ -8,10 +8,9 @@ import BottomSheet, { BottomSheetView } from '@gorhom/bottom-sheet'
 
 type PlaceBoardProps = {
     onPressPlace?: (place: Place) => void
-    onPressViewAll?: () => void
 }
 
-function PlaceBoard({ onPressPlace, onPressViewAll }: PlaceBoardProps) {
+function PlaceBoard({ onPressPlace }: PlaceBoardProps) {
     const bottomSheetRef = useRef<BottomSheet>(null)
     const [placeList, setPlaceList] = useState<Place[]>([])
 

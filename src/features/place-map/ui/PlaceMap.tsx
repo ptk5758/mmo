@@ -1,11 +1,12 @@
 import { useState } from 'react'
 import { Pressable, StyleSheet, Text, View } from 'react-native'
 import { MapPinPlus, X } from 'lucide-react-native/icons'
-import MapView, { MapPressEvent, Marker, Region } from 'react-native-maps'
+import MapView, { MapPressEvent, Marker as MarkerComponent, Region } from 'react-native-maps'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { NavigationProp, useNavigation } from '@react-navigation/native'
 import { RootStackParamList } from '../../../app'
 import { Coordinate } from '../../../shared/model/types'
+import { Place } from '../../place/model/types'
 /**
  * 기본 지도 초기화 장소
  * 울산 시청 좌표
@@ -17,20 +18,22 @@ const DEFAULT_MAP_REGION: Region = {
     longitudeDelta: 0.01, // zoom 관련
 }
 
-interface Place {
+interface Marker {
     title: string
     description?: string
     coordinate: Coordinate
 }
 
 interface PlaceMapProps {
-    onPressRegister?: (place: Place) => void
+    onPressRegister?: (marker: Marker) => void
+    region?: Region
+    placeList: Place[]
 }
 
-function PlaceMap({ onPressRegister }: PlaceMapProps) {
+function PlaceMap({ onPressRegister, region = DEFAULT_MAP_REGION, placeList }: PlaceMapProps) {
     const navigation = useNavigation<NavigationProp<RootStackParamList>>()
-    const [target, setTarget] = useState<Place | null>(null)
-    const [placeList, setPlaceList] = useState<Place[]>([])
+
+    const [target, setTarget] = useState<Marker | null>(null)
     const insets = useSafeAreaInsets()
 
     const handleMapClick = (e: MapPressEvent) => {
@@ -52,19 +55,19 @@ function PlaceMap({ onPressRegister }: PlaceMapProps) {
 
     return (
         <View style={styles.container}>
-            <MapView style={styles.map} onPress={handleMapClick} initialRegion={DEFAULT_MAP_REGION}>
+            <MapView style={styles.map} region={region} onPress={handleMapClick}>
                 {placeList.map((place, index) => {
                     return (
-                        <Marker
+                        <MarkerComponent
                             key={index}
-                            title={place.title}
+                            title={place.name}
                             description={place.description}
                             coordinate={place.coordinate}
                             stopPropagation={true}
                         />
                     )
                 })}
-                {target && <Marker title={target.title} coordinate={target.coordinate} stopPropagation={true} />}
+                {target && <MarkerComponent title={target.title} coordinate={target.coordinate} stopPropagation={true} />}
             </MapView>
 
             <View pointerEvents="box-none" style={[styles.actionLayer, { top: insets.top + 12 }]}>
