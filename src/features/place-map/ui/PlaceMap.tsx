@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Pressable, StyleSheet, Text, View } from 'react-native'
-import { Crosshair, MapPinPlus, X } from 'lucide-react-native/icons'
+import { Crosshair, MapPin, MapPinPlus, X } from 'lucide-react-native/icons'
 import MapView, { MapPressEvent, Marker as MarkerComponent, Region } from 'react-native-maps'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { NavigationProp, useNavigation } from '@react-navigation/native'
@@ -56,17 +56,9 @@ function PlaceMap({ onPressRegister, region = DEFAULT_MAP_REGION, placeList }: P
     return (
         <View style={styles.container}>
             <MapView style={styles.map} region={region} onPress={handleMapClick}>
-                {placeList.map((place, index) => {
-                    return (
-                        <MarkerComponent
-                            key={index}
-                            title={place.name}
-                            description={place.description}
-                            coordinate={place.coordinate}
-                            stopPropagation={true}
-                        />
-                    )
-                })}
+                {placeList.map(place => (
+                    <PlaceMarker key={place.id} place={place} />
+                ))}
                 {target && <TargetMarker {...target} />}
             </MapView>
 
@@ -100,6 +92,36 @@ function PlaceMap({ onPressRegister, region = DEFAULT_MAP_REGION, placeList }: P
                 </View>
             </View>
         </View>
+    )
+}
+
+function PlaceMarker({ place }: { place: Place }) {
+    const markerColor = place.isEnabled ? '#16845B' : '#7A817D'
+
+    return (
+        <MarkerComponent
+            centerOffset={{ x: -10, y: -77 }}
+            coordinate={place.coordinate}
+            stopPropagation={true}
+        >
+            <View
+                accessibilityLabel={`${place.name}, ${place.isEnabled ? '알림 켜짐' : '알림 꺼짐'}`}
+                style={styles.placeMarker}
+            >
+                <View style={[styles.placeLabel, !place.isEnabled && styles.placeLabelDisabled]}>
+                    <Text numberOfLines={1} style={[styles.placeLabelText, !place.isEnabled && styles.placeLabelTextDisabled]}>
+                        {place.name}
+                    </Text>
+                </View>
+
+                <View style={styles.placePin}>
+                    <View style={[styles.placePinCore, { backgroundColor: markerColor }]}>
+                        <MapPin color="#FFFFFF" size={20} strokeWidth={2.4} />
+                    </View>
+                    <View style={[styles.placePinTip, { backgroundColor: markerColor }]} />
+                </View>
+            </View>
+        </MarkerComponent>
     )
 }
 
@@ -183,6 +205,66 @@ const styles = StyleSheet.create({
     },
     map: {
         flex: 1,
+    },
+    placeMarker: {
+        alignItems: 'center',
+        maxWidth: 148,
+        paddingHorizontal: 8,
+        paddingTop: 4,
+    },
+    placeLabel: {
+        maxWidth: 132,
+        marginBottom: 5,
+        paddingHorizontal: 10,
+        paddingVertical: 5,
+        borderWidth: 1,
+        borderColor: '#DCEAE2',
+        borderRadius: 12,
+        backgroundColor: '#FFFFFF',
+        shadowColor: '#243D31',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.14,
+        shadowRadius: 4,
+        elevation: 3,
+    },
+    placeLabelDisabled: {
+        borderColor: '#E2E5E3',
+        backgroundColor: '#F5F6F5',
+    },
+    placeLabelText: {
+        color: '#315044',
+        fontSize: 11,
+        fontWeight: '700',
+    },
+    placeLabelTextDisabled: {
+        color: '#737A76',
+    },
+    placePin: {
+        alignItems: 'center',
+        shadowColor: '#173E2D',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.22,
+        shadowRadius: 5,
+        elevation: 5,
+    },
+    placePinCore: {
+        width: 38,
+        height: 38,
+        alignItems: 'center',
+        justifyContent: 'center',
+        zIndex: 1,
+        borderWidth: 3,
+        borderColor: '#FFFFFF',
+        borderRadius: 19,
+    },
+    placePinTip: {
+        width: 12,
+        height: 12,
+        marginTop: -8,
+        borderRightWidth: 3,
+        borderBottomWidth: 3,
+        borderColor: '#FFFFFF',
+        transform: [{ rotate: '45deg' }],
     },
     targetMarker: {
         alignItems: 'center',
