@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Pressable, StyleSheet, Text, View } from 'react-native'
-import { MapPinPlus, X } from 'lucide-react-native/icons'
+import { Crosshair, MapPinPlus, X } from 'lucide-react-native/icons'
 import MapView, { MapPressEvent, Marker as MarkerComponent, Region } from 'react-native-maps'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { NavigationProp, useNavigation } from '@react-navigation/native'
@@ -67,7 +67,7 @@ function PlaceMap({ onPressRegister, region = DEFAULT_MAP_REGION, placeList }: P
                         />
                     )
                 })}
-                {target && <MarkerComponent title={target.title} coordinate={target.coordinate} stopPropagation={true} />}
+                {target && <TargetMarker {...target} />}
             </MapView>
 
             <View pointerEvents="box-none" style={[styles.actionLayer, { top: insets.top + 12 }]}>
@@ -100,6 +100,25 @@ function PlaceMap({ onPressRegister, region = DEFAULT_MAP_REGION, placeList }: P
                 </View>
             </View>
         </View>
+    )
+}
+
+function TargetMarker({ coordinate }: Marker) {
+    return (
+        <MarkerComponent centerOffset={{ x: -10, y: -77 }} coordinate={coordinate} stopPropagation={true}>
+            <View accessibilityLabel="선택한 위치" style={styles.targetMarker}>
+                <View style={styles.targetLabel}>
+                    <Text style={styles.targetLabelText}>선택 위치</Text>
+                </View>
+
+                <View style={styles.targetPin}>
+                    <View style={styles.targetPinCore}>
+                        <Crosshair color="#FFFFFF" size={21} strokeWidth={2.4} />
+                    </View>
+                    <View style={styles.targetPinTip} />
+                </View>
+            </View>
+        </MarkerComponent>
     )
 }
 
@@ -164,6 +183,59 @@ const styles = StyleSheet.create({
     },
     map: {
         flex: 1,
+    },
+    targetMarker: {
+        alignItems: 'center',
+        paddingHorizontal: 8,
+        paddingTop: 4,
+    },
+    targetLabel: {
+        marginBottom: 5,
+        paddingHorizontal: 9,
+        paddingVertical: 5,
+        borderWidth: 1,
+        borderColor: '#DCEAE2',
+        borderRadius: 12,
+        backgroundColor: '#FFFFFF',
+        shadowColor: '#243D31',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.14,
+        shadowRadius: 4,
+        elevation: 3,
+    },
+    targetLabelText: {
+        color: '#315044',
+        fontSize: 11,
+        fontWeight: '700',
+    },
+    targetPin: {
+        alignItems: 'center',
+        shadowColor: '#173E2D',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.24,
+        shadowRadius: 5,
+        elevation: 5,
+    },
+    targetPinCore: {
+        width: 42,
+        height: 42,
+        alignItems: 'center',
+        justifyContent: 'center',
+        zIndex: 1,
+        borderWidth: 3,
+        borderColor: '#FFFFFF',
+        borderRadius: 21,
+        backgroundColor: '#16845B',
+    },
+    targetPinTip: {
+        width: 13,
+        height: 13,
+        marginTop: -8,
+        borderRightWidth: 3,
+        borderBottomWidth: 3,
+        borderColor: '#FFFFFF',
+        backgroundColor: '#16845B',
+        transform: [{ rotate: '45deg' }],
     },
 })
 export default PlaceMap
