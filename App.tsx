@@ -5,28 +5,32 @@
  * @format
  */
 
-import { StyleSheet, View } from 'react-native';
-import { GestureHandlerRootView } from 'react-native-gesture-handler';
-import { SafeAreaProvider } from 'react-native-safe-area-context';
-import MapView from 'react-native-maps';
-import { PlaceBoard } from './src/features/place';
-import { Router } from './src/app';
+import { StyleSheet } from 'react-native'
+import { GestureHandlerRootView } from 'react-native-gesture-handler'
+import { SafeAreaProvider } from 'react-native-safe-area-context'
+import { Router } from './src/app'
+import Geolocation from '@react-native-community/geolocation'
+
+Geolocation.setRNConfiguration({
+    skipPermissionRequests: false,
+    authorizationLevel: 'always',
+    enableBackgroundLocationUpdates: true,
+})
 
 function App() {
-  return (
-    <GestureHandlerRootView style={styles.container}>
-      <SafeAreaProvider>
-        <Router />
-      </SafeAreaProvider>
-    </GestureHandlerRootView>
-  );
+    return (
+        <GestureHandlerRootView style={styles.container}>
+            <SafeAreaProvider>
+                <Router />
+            </SafeAreaProvider>
+        </GestureHandlerRootView>
+    )
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  
-});
+    container: {
+        flex: 1,
+    },
+})
 
-export default App;
+export default App

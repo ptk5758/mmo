@@ -1,14 +1,30 @@
+/**
+ * https://www.npmjs.com/package/@react-native-community/geolocation#watchposition
+ */
 import { useFocusEffect } from '@react-navigation/native'
 import { useCallback, useRef, useState } from 'react'
-import { Pressable, StyleSheet, Text, View } from 'react-native'
+import { Alert, Linking, Pressable, StyleSheet, Text, View } from 'react-native'
 import { RadioTower } from 'lucide-react-native/icons'
 import type { Place } from '../model/types'
 import PlaceBoardItem from './PlaceBoardItem'
 import { getPlaceList } from '../model/place'
 import BottomSheet, { BottomSheetView } from '@gorhom/bottom-sheet'
+import Geolocation from '@react-native-community/geolocation'
 
 type PlaceBoardProps = {
     onPressPlace?: (place: Place) => void
+}
+
+function requestLocationPermission() {
+    return new Promise<boolean>(resolve => {
+        Geolocation.requestAuthorization(
+            () => resolve(true),
+            (error) => {
+                console.error(error)
+                resolve(false)
+            },
+        )
+    })
 }
 
 function PlaceBoard({ onPressPlace }: PlaceBoardProps) {
@@ -26,10 +42,52 @@ function PlaceBoard({ onPressPlace }: PlaceBoardProps) {
     const activePlaceCount = placeList.filter(place => place.isEnabled).length
     const canStartTracking = activePlaceCount > 0
 
-    const handleTracking = () => {
+    const watchIdRef = useRef<number | null>(null)
+
+    const handleTracking = async () => {
         if (!canStartTracking) return
 
-        setIsTracking(current => !current)
+        console.log('tracking!')
+        // 이미 추적 중 일 경우
+        if (isTracking) {
+            console.log("stop tracking")
+            setIsTracking(false)
+            if (watchIdRef.current) {
+                Geolocation.clearWatch(watchIdRef.current)
+            }
+
+            return
+        }
+        console.log("start tracking")
+
+        const permission = await requestLocationPermission()
+        console.log(permission)
+        if (!permission) {
+            Alert.alert('위치 권한이 필요해요', '장소 진입을 확인하려면 설정에서 위치 권한을 허용해 주세요.', [
+                { text: '취소', style: 'cancel' },
+                { text: '설정 열기', onPress: () => void Linking.openSettings() },
+            ])
+            return
+        }
+
+        const watchId = Geolocation.watchPosition(
+            response => {
+                console.log(response)
+            },
+            error => {
+                throw new Error('Runtime Error Watch position permission failed')
+            },
+            {
+                distanceFilter: 10, // distanceFilter(m) - 이전 위치에서 이 거리를 초과하면 새 위치를 반환합니다. 위치를 필터링하지 않으려면 0으로 설정하십시오. 기본값은 100m입니다.
+            },
+        )
+
+        if (!watchId) {
+            throw new Error('Runtime Error Watch Id null error')
+        }
+
+        watchIdRef.current = watchId
+        setIsTracking(true)
     }
 
     return (
@@ -49,8 +107,8 @@ function PlaceBoard({ onPressPlace }: PlaceBoardProps) {
                             {isTracking
                                 ? `${activePlaceCount}개 장소의 진입을 확인하고 있어요`
                                 : canStartTracking
-                                  ? `${activePlaceCount}개 장소를 백그라운드에서 확인해요`
-                                  : '알림이 켜진 장소를 먼저 등록해 주세요'}
+                                ? `${activePlaceCount}개 장소를 백그라운드에서 확인해요`
+                                : '알림이 켜진 장소를 먼저 등록해 주세요'}
                         </Text>
                     </View>
 
