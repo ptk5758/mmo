@@ -47,7 +47,7 @@ function PlaceMap({ onPressRegister, region = DEFAULT_MAP_REGION, placeList }: P
         if (!target) return
 
         onPressRegister?.(target)
-
+        setTarget(null)
         navigation.navigate('placeForm', { coordinate: target.coordinate })
     }
 
@@ -99,15 +99,8 @@ function PlaceMarker({ place }: { place: Place }) {
     const markerColor = place.isEnabled ? '#16845B' : '#7A817D'
 
     return (
-        <MarkerComponent
-            centerOffset={{ x: -10, y: -77 }}
-            coordinate={place.coordinate}
-            stopPropagation={true}
-        >
-            <View
-                accessibilityLabel={`${place.name}, ${place.isEnabled ? '알림 켜짐' : '알림 꺼짐'}`}
-                style={styles.placeMarker}
-            >
+        <MarkerComponent centerOffset={{ x: -10, y: -77 }} coordinate={place.coordinate} stopPropagation={true}>
+            <View accessibilityLabel={`${place.name}, ${place.isEnabled ? '알림 켜짐' : '알림 꺼짐'}`} style={styles.placeMarker}>
                 <View style={[styles.placeLabel, !place.isEnabled && styles.placeLabelDisabled]}>
                     <Text numberOfLines={1} style={[styles.placeLabelText, !place.isEnabled && styles.placeLabelTextDisabled]}>
                         {place.name}
