@@ -10,6 +10,7 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler'
 import { SafeAreaProvider } from 'react-native-safe-area-context'
 import { Router } from './src/app'
 import Geolocation from '@react-native-community/geolocation'
+import { LocationContextProvider } from './src/app/context/LocationContext'
 
 Geolocation.setRNConfiguration({
     skipPermissionRequests: false,
@@ -21,7 +22,9 @@ function App() {
     return (
         <GestureHandlerRootView style={styles.container}>
             <SafeAreaProvider>
-                <Router />
+                <LocationContextProvider>
+                    <Router />
+                </LocationContextProvider>
             </SafeAreaProvider>
         </GestureHandlerRootView>
     )
