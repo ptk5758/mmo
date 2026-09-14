@@ -1,5 +1,5 @@
-import { useState } from 'react'
-import { Pressable, StyleSheet, Text, View } from 'react-native'
+import { useEffect, useRef, useState } from 'react'
+import { PermissionsAndroid, Platform, Pressable, StyleSheet, Text, View } from 'react-native'
 import { Crosshair, MapPin, MapPinPlus, X } from 'lucide-react-native/icons'
 import MapView, { MapPressEvent, Marker as MarkerComponent, Region } from 'react-native-maps'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
@@ -30,11 +30,34 @@ interface PlaceMapProps {
     placeList: Place[]
 }
 
-function PlaceMap({ onPressRegister, region = DEFAULT_MAP_REGION, placeList }: PlaceMapProps) {
+function PlaceMap({ onPressRegister, region, placeList }: PlaceMapProps) {
     const navigation = useNavigation<NavigationProp<RootStackParamList>>()
 
+    const mapRef = useRef<MapView>(null)
+    const centeredOnUserRef = useRef(false)
     const [target, setTarget] = useState<Marker | null>(null)
+    const [hasLocationPermission, setHasLocationPermission] = useState(Platform.OS === 'ios')
+
+    useEffect(() => {
+        if (Platform.OS !== 'android') return
+
+        let mounted = true
+        PermissionsAndroid.request(PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION)
+            .then(result => {
+                if (mounted) setHasLocationPermission(result === PermissionsAndroid.RESULTS.GRANTED)
+            })
+            .catch(error => console.error('위치 권한 요청 실패', error))
+
+        return () => { mounted = false }
+    }, [])
     const insets = useSafeAreaInsets()
+
+    const handleUserLocationChange = (event: { nativeEvent: { coordinate?: Coordinate } }) => {
+        const coordinate = event.nativeEvent.coordinate
+        if (!coordinate || centeredOnUserRef.current || region) return
+        centeredOnUserRef.current = true
+        mapRef.current?.animateToRegion({ ...coordinate, latitudeDelta: 0.01, longitudeDelta: 0.01 })
+    }
 
     const handleMapClick = (e: MapPressEvent) => {
         const { coordinate } = e.nativeEvent
@@ -55,7 +78,16 @@ function PlaceMap({ onPressRegister, region = DEFAULT_MAP_REGION, placeList }: P
 
     return (
         <View style={styles.container}>
-            <MapView style={styles.map} region={region} onPress={handleMapClick}>
+            <MapView
+                ref={mapRef}
+                style={styles.map}
+                initialRegion={DEFAULT_MAP_REGION}
+                region={region}
+                onPress={handleMapClick}
+                onUserLocationChange={handleUserLocationChange}
+                showsUserLocation={hasLocationPermission}
+                showsMyLocationButton={false}
+            >
                 {placeList.map(place => (
                     <PlaceMarker key={place.id} place={place} />
                 ))}
