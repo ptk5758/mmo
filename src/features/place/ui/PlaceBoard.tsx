@@ -15,18 +15,6 @@ type PlaceBoardProps = {
     onPressPlace?: (place: Place) => void
 }
 
-function requestLocationPermission() {
-    return new Promise<boolean>(resolve => {
-        Geolocation.requestAuthorization(
-            () => resolve(true),
-            (error) => {
-                console.error(error)
-                resolve(false)
-            },
-        )
-    })
-}
-
 function PlaceBoard({ onPressPlace }: PlaceBoardProps) {
     const bottomSheetRef = useRef<BottomSheet>(null)
     const [placeList, setPlaceList] = useState<Place[]>([])
@@ -47,26 +35,13 @@ function PlaceBoard({ onPressPlace }: PlaceBoardProps) {
     const handleTracking = async () => {
         if (!canStartTracking) return
 
-        console.log('tracking!')
         // 이미 추적 중 일 경우
         if (isTracking) {
-            console.log("stop tracking")
             setIsTracking(false)
             if (watchIdRef.current) {
                 Geolocation.clearWatch(watchIdRef.current)
             }
 
-            return
-        }
-        console.log("start tracking")
-
-        const permission = await requestLocationPermission()
-        console.log(permission)
-        if (!permission) {
-            Alert.alert('위치 권한이 필요해요', '장소 진입을 확인하려면 설정에서 위치 권한을 허용해 주세요.', [
-                { text: '취소', style: 'cancel' },
-                { text: '설정 열기', onPress: () => void Linking.openSettings() },
-            ])
             return
         }
 
@@ -75,13 +50,19 @@ function PlaceBoard({ onPressPlace }: PlaceBoardProps) {
                 console.log(response)
             },
             error => {
-                throw new Error('Runtime Error Watch position permission failed')
+                Alert.alert('위치 권한이 필요해요', '장소 진입을 확인하려면 설정에서 위치 권한을 허용해 주세요.', [
+                    { text: '취소', style: 'cancel' },
+                    { text: '설정 열기', onPress: () => void Linking.openSettings() },
+                ])
+                Geolocation.clearWatch(watchId)
+                return
             },
             {
-                distanceFilter: 10, // distanceFilter(m) - 이전 위치에서 이 거리를 초과하면 새 위치를 반환합니다. 위치를 필터링하지 않으려면 0으로 설정하십시오. 기본값은 100m입니다.
+                distanceFilter: 1, // distanceFilter(m) - 이전 위치에서 이 거리를 초과하면 새 위치를 반환합니다. 위치를 필터링하지 않으려면 0으로 설정하십시오. 기본값은 100m입니다.
             },
         )
 
+        console.log('Watch ID' + watchId)
         if (!watchId) {
             throw new Error('Runtime Error Watch Id null error')
         }
