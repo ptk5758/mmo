@@ -5,6 +5,9 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Region } from 'react-native-maps'
 import { useFocusEffect } from '@react-navigation/native'
 
+/**
+ * @deprecated Main 컴포넌트로 이동 
+ */
 function Home() {
     /**
      * 선택 장소
